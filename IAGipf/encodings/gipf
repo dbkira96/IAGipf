@@ -1,0 +1,106 @@
+node(11..15).
+node(21..26).
+node(31..37).
+node(41..48).
+node(51..59).
+node(62..69).
+node(73..79).
+node(84..89).
+node(95..99).
+
+direzione(1).
+direzione(10).
+direzione(11).
+direzione(-1).
+direzione(-10).
+direzione(-11).
+
+nodoEsterno(11..15).
+nodoEsterno(95..99).
+nodoEsterno(21).
+nodoEsterno(31).
+nodoEsterno(41).
+nodoEsterno(51).
+nodoEsterno(62).
+nodoEsterno(73).
+nodoEsterno(84).
+nodoEsterno(26).
+nodoEsterno(37).
+nodoEsterno(48).
+nodoEsterno(59).
+nodoEsterno(69).
+nodoEsterno(79).
+nodoEsterno(89).
+
+%%SITUAZIONE INIZIALE
+
+
+%%SITUAZIONE INIZIALE
+
+
+
+mossa(X, Y) | nonMossa(X, Y) :- nodoEsterno(X), direzione(Y), node(X+Y), not nodoEsterno(X+Y). 		%%GUESS, DOVREBBE ESSERE VERIFICATO ANCHE IL CONSTRAINT SUL NODO ESTERNO
+
+:- mossa(X, Y), mossa(X2, Y), X != X2.		%%POSSO FARE UNA SOLA MOSSA
+:- mossa(X, Y), mossa(X, Y2), Y != Y2.		%%POSSO FARE UNA SOLA MOSSA
+:- mossa(X, Y), mossa(X2, Y2), X != X2, Y != Y2.
+
+mossaEffettuata :- mossa(_, _).
+:- not mossaEffettuata.
+
+pezzo("black", X) :- mossa(X, Y).
+
+daSpostare(X) :- mossa(X, _).
+
+daSpostare(Y) :- pezzo(_, Y), mossa(_,D), daSpostare(Z), Y = Z + D.
+
+nuovoPezzo(Col, Pos) :- pezzo(Col, Pos), not daSpostare(Pos).		%%I PEZZI NON INTERESSATI DALLA MOSSA CHE DIVENTANO SUBITO NUOVI PEZZI.
+
+nuovoPezzo(Col, NuovaPos) :- pezzo(Col, Pos), daSpostare(Pos), mossa(_, Y), NuovaPos = Pos + Y.		%%SPOSTIAMO I PEZZI SULLA STESSA RIGA DELLA MOSSA 
+
+:- nuovoPezzo(_, Pos), nodoEsterno(Pos).	%%UN PEZZO NON PUO' FINIRE FUORI
+
+
+linea(NE, D) :- nodoEsterno(NE), direzione(D), not nodoEsterno(NE + D), node(NE + D), D > 0.
+
+suLinea(N, NE, D) :- linea(NE, D), node(N), N - D = NE.
+suLinea(X, NE, D) :- linea(NE, D), suLinea(Y, NE, D), node(X), X - D = Y.
+
+quartina(A, B, C, D, Dir, Col) :- linea(NE, Dir), nuovoPezzo(Col, A), nuovoPezzo(Col, B), nuovoPezzo(Col, C), nuovoPezzo(Col, D), suLinea(A, NE, Dir), suLinea(B, NE, Dir), suLinea(C, NE, Dir), suLinea(D, NE, Dir), B = A + Dir, C = B + Dir, D = C + Dir.
+
+
+terzina(A, B, C, Dir, Col) :- linea(NE, Dir), nuovoPezzo(Col, A), nuovoPezzo(Col, B), nuovoPezzo(Col, C), suLinea(A, NE, Dir), suLinea(B, NE, Dir), suLinea(C, NE, Dir), B = A + Dir, C = B + Dir.
+
+
+inTerzina(Pos) :- nuovoPezzo(_, Pos), not scomparso(Pos), terzina(Pos, _, _, _, "black").
+inTerzina(Pos) :- nuovoPezzo(_, Pos), not scomparso(Pos), terzina(_, Pos, _, _, "black").
+inTerzina(Pos) :- nuovoPezzo(_, Pos), not scomparso(Pos), terzina(_, _, Pos, _, "black").
+
+pedinaVicina(Pos) :- nuovoPezzo("black", Pos), direzione(D), nuovoPezzo("black", Pos + D).
+
+scompare(N, Dir) :- quartina(N, _, _, _, Dir, "white").
+
+scompare(N, Dir) :- scompare(A, Dir), N = A + Dir, nuovoPezzo(_, N).
+scompare(N, Dir) :- scompare(A, Dir), N = A - Dir, nuovoPezzo(_, N).
+
+inRiserva(N, Dir) :- quartina(N, _, _, _, Dir, "black").
+
+inRiserva(N, Dir) :- inRiserva(A, Dir), N = A + Dir, nuovoPezzo(_, N).
+inRiserva(N, Dir) :- inRiserva(A, Dir), N = A - Dir, nuovoPezzo(_, N).
+
+pezzoPerso(N) :- scompare(N, _), nuovoPezzo("black", N).
+pezzoInRiserva(N) :- inRiserva(N, _), nuovoPezzo("black", N).
+pezzoMangiato(N) :- inRiserva(N, _), nuovoPezzo("white", N).
+suoInRiserva(N) :- scompare(N, _), nuovoPezzo("white", N).
+
+scomparso(Pos) :- scompare(Pos, _).
+
+:~ pezzoPerso(N). 											[1@5, N]					%%INNANZITUTTO NON DOBBIAMO FARCI MANGIARE PEZZI
+:~ nuovoPezzo("white", N), not pezzoMangiato(N). 							[1@4, N]		%%POI DOBBIAMO MANGIARE SUOI PEZZI
+:~ nuovoPezzo("black", N), not pezzoInRiserva(N). 							[1@3, N]	%%POI DOBBIAMO CERCARE DI AVERE PIU' PEZZI IN RISERVA
+:~ terzina(A, B, C, _, "white"), not scomparso(A), not scomparso(B), not scomparso(C).			[1@3, A, B, C]		%%CERCHIAMO DI ROMPERE LE TERZINE AVVERSARIE
+:~ nuovoPezzo("black", Pos), not inTerzina(Pos).							[1@2, Pos]		%%CERCHIAMO DI FARE PIU' TERZINE POSSIBILI
+:~ suoInRiserva(N). 											[1@2, N]	%%PAGHIAMO PER OGNI PEZZO CHE GLI VA IN RISERVA
+:~ nuovoPezzo("black", Pos), not scomparso(Pos),not pedinaVicina(Pos).  				[1@1, Pos] %%PEZZO ISOLATO
+
+
