@@ -217,7 +217,13 @@ class GipfBoardComponentMouseListener extends MouseAdapter implements Runnable {
 	  		}
 	  		else
 	  		{
-	  			gipfBoardComponent.game.applyMove(new Mossa(51, 1).getMove());
+	  			Object[] allowedMoves=gipfBoardComponent.game.getAllowedMoves().toArray();
+	  			int i = new Random().nextInt(allowedMoves.length);
+	  			try {
+					gipfBoardComponent.game.applyMove((Move) allowedMoves[i]);
+				} catch (Exception e) {
+					// fai un cazzo e riprova	
+				}
 	  		}
 
      	  

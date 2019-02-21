@@ -101,11 +101,7 @@ public class GipfBoardComponent extends JComponent {
             case basic:
                 game = new BasicGame();
                 break;
-            case standard:
-                game = new StandardGame();
-                break;
-            case tournament:
-                game = new TournamentGame();
+           
         }
         clearSelectedPositions();
     }

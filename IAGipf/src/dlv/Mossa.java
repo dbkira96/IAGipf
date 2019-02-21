@@ -1,6 +1,7 @@
 package dlv;
 
 import java.util.Optional;
+import java.util.Set;
 
 import GameLogic.Direction;
 import GameLogic.Move;
@@ -47,6 +48,8 @@ public class Mossa {
 		Move m = new Move(Piece.BLACK_SINGLE, new Position(this.nodoEsterno), Direction.getDirectionFromDeltaPos(this.direzione), Optional.empty());
 		return m;
 	}
+
+	
 	
 	
 }

@@ -18,7 +18,11 @@ import java.io.*;
  * Created by frans on 18-9-2015.
  */
 public class GipfWindow extends JFrame {
-    JTextArea gameLogTextArea;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	JTextArea gameLogTextArea;
     private final JTextField newPieceCoordinateTextField;
     private final JComboBox<Piece> pieceTypeComboBox;
     private final JLabel piecesLeftLabel;
@@ -26,49 +30,9 @@ public class GipfWindow extends JFrame {
     private final JLabel gameTypeLabel;
     private GameStateUpdater gameStateUpdater;
     private GipfBoardComponent gipfBoardComponent;
-    ActionListener openDialog = e -> {
-        JFileChooser fileChooser = new JFileChooser();
-        int rval = fileChooser.showOpenDialog(this);
-
-        if (rval == JFileChooser.APPROVE_OPTION) {
-            try {
-                FileInputStream fileIn = new FileInputStream(fileChooser.getSelectedFile().getAbsolutePath());
-                ObjectInputStream in = null;
-                in = new ObjectInputStream(fileIn);
-
-                Game game = (Game) in.readObject();
-                in.close();
-                fileIn.close();
-
-                gipfBoardComponent.setGame(game);
-                gameLogTextArea.setText("");
-                gipfBoardComponent.game.newGameLogger();
-                gameStateUpdater.setGame(game);
-                System.out.println("Game is opened from " + fileChooser.getSelectedFile().getAbsolutePath());
-            } catch (IOException | ClassNotFoundException exception) {
-                exception.printStackTrace();
-            }
-        }
-    };
-    ActionListener saveDialog = e -> {
-        JFileChooser fileChooser = new JFileChooser();
-        int rval = fileChooser.showSaveDialog(this);
-
-        if (rval == JFileChooser.APPROVE_OPTION) {
-            try {
-                FileOutputStream fileOut = new FileOutputStream(fileChooser.getSelectedFile().getAbsolutePath());
-                ObjectOutputStream out = null;
-                out = new ObjectOutputStream(fileOut);
-
-                out.writeObject(gipfBoardComponent.game);
-                out.close();
-                fileOut.close();
-                System.out.println("Game is saved in " + fileChooser.getSelectedFile().getAbsolutePath());
-            } catch (IOException exception) {
-                exception.printStackTrace();
-            }
-        }
-    };
+    
+        
+ 
 
     public GipfWindow() throws HeadlessException {
         super();
@@ -77,7 +41,7 @@ public class GipfWindow extends JFrame {
         final JPanel contentPane = new JPanel();
         newPieceCoordinateTextField = new JTextField();
         JButton newPieceCoordinateEnterButton = new JButton("Enter");
-        JButton previousStateButton = new JButton("Undo move");
+        
         JLabel theGipfGameLabel = new JLabel("The GIPF game");
         Game game = new BasicGame();
         gipfBoardComponent = new GipfBoardComponent(game);
@@ -88,24 +52,18 @@ public class GipfWindow extends JFrame {
         gameTypeLabel = new JLabel(" ");
         gameStateUpdater = new GameStateUpdater(this, game);
         JMenuBar menuBar = new JMenuBar();
-        JMenu fileMenu = new JMenu("File");
-        JMenuItem saveAsMenuItem = new JMenuItem("Save as...");
-        JMenuItem openMenuItem = new JMenuItem("Open...");
-        JMenuItem closeMenuItem = new JMenuItem("Close");
+       
+       
+    
+       
         JMenu newGameMenu = new JMenu("New");
         JMenuItem newBasicGameMenuItem = new JMenuItem("Basic game");
-        JMenuItem newStandardGameMenuItem = new JMenuItem("Standard game");
-        JMenuItem newTournamentGameMenuItem = new JMenuItem("Tournament game");
+        
 
-        menuBar.add(fileMenu);
-        fileMenu.add(openMenuItem);
-        fileMenu.add(saveAsMenuItem);
-        fileMenu.addSeparator();
-        fileMenu.add(closeMenuItem);
+      
         menuBar.add(newGameMenu);
         newGameMenu.add(newBasicGameMenuItem);
-        newGameMenu.add(newStandardGameMenuItem);
-        newGameMenu.add(newTournamentGameMenuItem);
+        
 
         // Set the properties of the elements
         gameLogTextArea.setRows(10);
@@ -113,7 +71,7 @@ public class GipfWindow extends JFrame {
         gameTypeLabel.setFont(UIval.get().largeLabelFont);
         piecesLeftLabel.setFont(UIval.get().largeLabelFont);
         theGipfGameLabel.setFont(UIval.get().largeLabelFont);
-        previousStateButton.setFont(UIval.get().buttonFont);
+        
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("GIPF");
@@ -127,26 +85,19 @@ public class GipfWindow extends JFrame {
         contentPane.add(currentPlayerLabel);
         contentPane.add(piecesLeftLabel);
         contentPane.add(gipfBoardComponent);
-        contentPane.add(previousStateButton);
-
+       
         // Add listeners
         newPieceCoordinateTextField.addActionListener(e -> listenerAddNewPiece());
         newPieceCoordinateEnterButton.addActionListener(e -> listenerAddNewPiece());
-        previousStateButton.addActionListener(e -> {
-            returnToPreviousState();
-            gipfBoardComponent.clearSelectedPositions();
-        });
+        
 
-        openMenuItem.addActionListener(openDialog);
-        saveAsMenuItem.addActionListener(saveDialog);
-        closeMenuItem.addActionListener(e -> System.exit(0));
+       
         newBasicGameMenuItem.addActionListener(e -> newGame(GameType.basic));
-        newStandardGameMenuItem.addActionListener(e -> newGame(GameType.standard));
-        newTournamentGameMenuItem.addActionListener(e -> newGame(GameType.tournament));
+      
 
 
         contentPane.add(new JScrollPane(gameLogTextArea));
-        previousStateButton.setFocusable(false);                // To avoid the flashing undo button
+           // To avoid the flashing undo button
 
         pack();
         setVisible(true);
@@ -188,9 +139,7 @@ public class GipfWindow extends JFrame {
         }
     }
 
-    private void returnToPreviousState() {
-        gipfBoardComponent.game.returnToPreviousBoard();
-    }
+   
 
     public void setPiecesLeftLabel(String message) {
         piecesLeftLabel.setText(message);
